@@ -1,0 +1,11 @@
+{
+  "agent": "infra",
+  "node_quarantined": "nhm-data-processor-03",
+  "snapshot_created": "snap-1742930000000",
+  "c2_killed": "185.220.101.47",
+  "portal_scaled": "3_replicas",
+  "nic_oncall_paged_sms": true,
+  "jira_p0_created": true,
+  "time_to_containment_sec": 58,
+  "demo_line": "AIIMS Delhi. 15 days down. With KAVACH: 58 seconds to contain. Snapshot preserved. Citizens online. Evidence intact."
+}

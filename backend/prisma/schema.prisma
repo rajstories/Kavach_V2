@@ -1,0 +1,209 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Domain {
+  IDENTITY
+  NETWORK
+  INFRASTRUCTURE
+}
+
+enum Severity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum IncidentStatus {
+  OPEN
+  REMEDIATING
+  CONTAINED
+  RESOLVED
+  ARCHIVED
+}
+
+enum AlertChannel {
+  TELEGRAM
+  EMAIL
+  SLACK
+  SMS
+  JIRA
+}
+
+enum AlertDeliveryStatus {
+  SENT
+  FAILED
+}
+
+enum CopilotLanguage {
+  HINDI
+  ENGLISH
+}
+
+model Incident {
+  id                     String         @id @default(cuid())
+  executionId            String
+  findingId              String         @unique
+  domain                 Domain
+  severity               Severity
+  status                 IncidentStatus @default(OPEN)
+  classification         String
+  confidence             Float
+  offenderType           String
+  offenderValue          String
+  affectedService        String
+  evidenceJson           Json
+  recommendedActionsJson Json
+  rawFindingJson         Json
+  detectedAt             DateTime
+  resolvedAt             DateTime?
+  civicMultiplier        Float
+  calendarEvent          String?
+  isCalendarElevated     Boolean        @default(false)
+  priorityScore          Float
+  intelEnriched          Boolean        @default(false)
+  threatLevel            String?
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  remediations           Remediation[]
+  flaggedUIDs            FlaggedUID[]
+  alerts                 AlertLog[]
+  threatIntelligence     ThreatIntelligence?
+
+  @@index([severity])
+  @@index([domain])
+  @@index([status])
+  @@index([detectedAt])
+  @@index([executionId])
+  @@index([priorityScore])
+  @@index([calendarEvent])
+  @@index([findingId])
+  @@index([intelEnriched])
+  @@index([threatLevel])
+}
+
+model ThreatIntelligence {
+  id                 String   @id @default(cuid())
+  findingId          String   @unique
+  ip                 String
+  otxPulseCount      Int?
+  otxReputation      Int?
+  country            String?
+  asn                String?
+  malwareFamilies    String[]
+  threatActorSummary String?
+  hindiSummary       String?
+  threatLevel        String?
+  campaignLink       String?
+  enrichedAt         DateTime @default(now())
+  incident           Incident @relation(fields: [findingId], references: [findingId], onDelete: Cascade)
+
+  @@index([ip])
+  @@index([threatLevel])
+  @@index([enrichedAt])
+}
+
+model Remediation {
+  id               String   @id @default(cuid())
+  incidentId       String
+  agentType        String
+  actionTaken      Json
+  success          Boolean
+  responseJson     Json
+  accounts_locked  Int      @default(0)
+  sessions_revoked Int      @default(0)
+  ips_blocked      Int      @default(0)
+  executedAt       DateTime @default(now())
+  incident         Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@index([incidentId])
+  @@index([executedAt])
+}
+
+model FlaggedUID {
+  id         String   @id @default(cuid())
+  incidentId String
+  uid        String
+  service    String
+  source     String
+  flaggedAt  DateTime @default(now())
+  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@unique([incidentId, uid])
+  @@index([incidentId])
+  @@index([uid])
+  @@index([flaggedAt])
+}
+
+model DiskSnapshot {
+  id         String   @id @default(cuid())
+  snapshotId String   @unique
+  node       String
+  service    String
+  label      String
+  note       String
+  provider   String
+  status     String
+  createdAt  DateTime @default(now())
+
+  @@index([service])
+  @@index([node])
+  @@index([createdAt])
+}
+
+model InfraOperation {
+  id          String   @id @default(cuid())
+  operation   String
+  target      String
+  detailsJson Json
+  createdAt   DateTime @default(now())
+
+  @@index([operation])
+  @@index([target])
+  @@index([createdAt])
+}
+
+model AlertLog {
+  id             String              @id @default(cuid())
+  incidentId     String
+  channel        AlertChannel
+  status         AlertDeliveryStatus
+  messagePreview String
+  sentAt         DateTime            @default(now())
+  incident       Incident            @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@index([incidentId])
+  @@index([channel])
+  @@index([sentAt])
+}
+
+model LogBatch {
+  id           String   @id @default(cuid())
+  source       String
+  rawLogsJson  Json
+  analyzedAt   DateTime @default(now())
+  findingsCount Int
+  executionId  String
+
+  @@index([analyzedAt])
+  @@index([executionId])
+  @@index([source])
+}
+
+model CopilotSession {
+  id          String          @id @default(cuid())
+  userId      String
+  language    CopilotLanguage
+  messagesJson Json
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([userId])
+  @@index([updatedAt])
+}

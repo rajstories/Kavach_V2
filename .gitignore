@@ -1,0 +1,61 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Environment files — NEVER commit these
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# Build outputs
+dist/
+build/
+out/
+
+# TypeScript
+*.tsbuildinfo
+
+# Python
+pycache/
+*.py[cod]
+*$py.class
+*.pyc
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+.pytest_cache/
+
+# ML Models (too large for git)
+*.pkl
+*.joblib
+*.h5
+*.model
+ml-service/models/
+
+# Logs
+logs/
+.log
+npm-debug.log
+
+# IDE
+.idea/
+.vscode/settings.json
+*.swp
+*.swo
+.DS_Store
+
+# Prisma
+backend/prisma/migrations/
+
+# Docker
+.docker/
+
+# Coverage
+coverage/
+.nyc_output/
